@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts"
   },
+  "engines": {
+    "node": "22.x"
+  },
   "devDependencies": {
     "@types/node": "^22.19.17",
     "eslint": "^9.39.2",
