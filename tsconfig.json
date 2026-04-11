@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext", // vai utilizar o proprio ts para buildar
+    "target": "es2024", // utilização de ESM versao 2024
+    "skipLibCheck": true, // nao verificar bibliotecas do node_modules
+    "strict": true,
+    "outDir": "./dist", // a aplicação compilada vai ficar dentro desta pasta
+    "rootDir": "./src"  // para o ts considerar apenas a pasta src
+  },
+}
