@@ -1,10 +1,10 @@
 {
-    "eslint.useFlatConfig": true,
-    "editor.formatOnSave": true,
-    "eslint.validate": ["javascript", "typescript"],
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "always"
-    },
-    "prettier.requireConfig": true
+	"editor.formatOnSave": true,
+	"eslint.useFlatConfig": true,
+	"eslint.validate": ["javascript", "typescript"],
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "always"
+	},
+	"prettier.requireConfig": true
 }
