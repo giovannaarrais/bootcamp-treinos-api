@@ -1,31 +1,66 @@
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUI from "@fastify/swagger-ui";
 import Fastify from "fastify";
-import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod';
+import {
+	jsonSchemaTransform,
+	serializerCompiler,
+	validatorCompiler,
+	ZodTypeProvider,
+} from "fastify-type-provider-zod";
 import z from "zod";
-
 
 const app = Fastify({
 	logger: true,
-})
+});
 
+// utilizacao de fastify-type-provider-zod
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
+
+// Documentação com fastify/swagger
+await app.register(fastifySwagger, {
+	openapi: {
+		info: {
+		title: 'Bootcamp Treinos API',
+		description: 'API para o bootcamp de treinos',
+		version: '1.0.0',
+		},
+		servers: [
+			{
+				description: "Localhost",
+				url: "http://localhost:8081"
+			}
+		],
+	},
+	transform: jsonSchemaTransform,
+
+});
+await app.register(fastifySwaggerUI, {
+	routePrefix: '/docs', // rota q estará a documentação
+});
+
+
+// utilizacao de fastify-type-provider-zod
 app.withTypeProvider<ZodTypeProvider>().route({
-	method: 'GET',
+	method: "GET",
 	url: "/",
 	schema: {
+		description: "Hello World",
+		tags: ["Hello World"], // aqui será o titulo da rota da documentacao do swagger
 		response: {
-			200: z.object({ // quando a rota retornar 200 ira retornar essa tipagem
+			200: z.object({
+				// quando a rota retornar 200 ira retornar essa tipagem
 				message: z.string(),
-			})
-		}
+			}),
+		},
 	},
 	// aqui sao os dados que a rota ira retornar
 	handler: () => {
 		return {
-			message: "Hello World!"
-		}
-	}
+			message: "Hello World!",
+		};
+	},
 });
 
 app.listen({ port: Number(process.env.PORT) || 8081 }, function (err) {
