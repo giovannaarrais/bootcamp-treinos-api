@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifyApiReference from "@scalar/fastify-api-reference";
@@ -108,6 +110,8 @@ app.route({
 		}
 	},
 });
+
+console.log(process.env.DATABASE_URL);
 
 app.listen({ port: Number(process.env.PORT) || 8081 }, function (err) {
 	if (err) {
