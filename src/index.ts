@@ -1,6 +1,6 @@
 import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
-import fastifySwaggerUI from "@fastify/swagger-ui";
+import fastifyApiReference from "@scalar/fastify-api-reference";
 import { fromNodeHeaders } from "better-auth/node";
 import Fastify from "fastify";
 import {
@@ -9,7 +9,6 @@ import {
 	validatorCompiler,
 	ZodTypeProvider,
 } from "fastify-type-provider-zod";
-import z from "zod";
 
 import { auth } from "./lib/auth.js";
 
@@ -38,9 +37,6 @@ await app.register(fastifySwagger, {
 	},
 	transform: jsonSchemaTransform,
 });
-await app.register(fastifySwaggerUI, {
-	routePrefix: "/docs", // rota q estará a documentação
-});
 
 // Cors
 await app.register(fastifyCors, {
@@ -48,25 +44,35 @@ await app.register(fastifyCors, {
 	credentials: true,
 });
 
+app.register(fastifyApiReference, {
+	routePrefix: "/docs",
+	configuration: {
+		sources: [
+			{
+				title: "Bootcamp Treinos API",
+				slug: "bootcamp-treinos-api",
+				url: "/swagger.json",
+			},
+			{
+				// config da api do better auth
+				title: "Auth API",
+				slug: "auth-api",
+				url: "/api/auth/open-api/generate-schema",
+			},
+		],
+	},
+});
+
 // utilizacao de fastify-type-provider-zod
 app.withTypeProvider<ZodTypeProvider>().route({
 	method: "GET",
-	url: "/",
+	url: "/swagger.json",
 	schema: {
-		description: "Hello World",
-		tags: ["Hello World"], // aqui será o titulo da rota da documentacao do swagger
-		response: {
-			200: z.object({
-				// quando a rota retornar 200 ira retornar essa tipagem
-				message: z.string(),
-			}),
-		},
+		hide: true,
 	},
 	// aqui sao os dados que a rota ira retornar
 	handler: () => {
-		return {
-			message: "Hello World!",
-		};
+		return app.swagger();
 	},
 });
 
