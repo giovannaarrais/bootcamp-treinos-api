@@ -1,5 +1,7 @@
+import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
+import { fromNodeHeaders } from "better-auth/node";
 import Fastify from "fastify";
 import {
 	jsonSchemaTransform,
@@ -9,6 +11,8 @@ import {
 } from "fastify-type-provider-zod";
 import z from "zod";
 
+import { auth } from "./lib/auth.js";
+
 const app = Fastify({
 	logger: true,
 });
@@ -17,29 +21,32 @@ const app = Fastify({
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
-
 // Documentação com fastify/swagger
 await app.register(fastifySwagger, {
 	openapi: {
 		info: {
-		title: 'Bootcamp Treinos API',
-		description: 'API para o bootcamp de treinos',
-		version: '1.0.0',
+			title: "Bootcamp Treinos API",
+			description: "API para o bootcamp de treinos",
+			version: "1.0.0",
 		},
 		servers: [
 			{
 				description: "Localhost",
-				url: "http://localhost:8081"
-			}
+				url: "http://localhost:8081",
+			},
 		],
 	},
 	transform: jsonSchemaTransform,
-
 });
 await app.register(fastifySwaggerUI, {
-	routePrefix: '/docs', // rota q estará a documentação
+	routePrefix: "/docs", // rota q estará a documentação
 });
 
+// Cors
+await app.register(fastifyCors, {
+	origin: ["http://localhost:3000"], // url front end
+	credentials: true,
+});
 
 // utilizacao de fastify-type-provider-zod
 app.withTypeProvider<ZodTypeProvider>().route({
@@ -60,6 +67,39 @@ app.withTypeProvider<ZodTypeProvider>().route({
 		return {
 			message: "Hello World!",
 		};
+	},
+});
+
+// integracao com better auth
+app.route({
+	method: ["GET", "POST"],
+	url: "/api/auth/*",
+	async handler(request, reply) {
+		try {
+			// Construct request URL
+			const url = new URL(request.url, `http://${request.headers.host}`);
+
+			// Convert app headers to standard Headers object
+			const headers = fromNodeHeaders(request.headers);
+			// Create Fetch API-compatible request
+			const req = new Request(url.toString(), {
+				method: request.method,
+				headers,
+				...(request.body ? { body: JSON.stringify(request.body) } : {}),
+			});
+			// Process authentication request
+			const response = await auth.handler(req);
+			// Forward response to client
+			reply.status(response.status);
+			response.headers.forEach((value, key) => reply.header(key, value));
+			reply.send(response.body ? await response.text() : null);
+		} catch (error) {
+			app.log.error(`Authentication Error: ${error}`);
+			reply.status(500).send({
+				error: "Internal authentication error",
+				code: "AUTH_FAILURE",
+			});
+		}
 	},
 });
 
